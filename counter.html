@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-YEAR WEALTH TIMER · March 2031</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b1420;
+            background-image: radial-gradient(circle at 30% 10%, rgba(255, 215, 0, 0.05) 0%, transparent 30%),
+                              radial-gradient(circle at 80% 70%, rgba(0, 200, 255, 0.05) 0%, transparent 40%);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #eef4ff;
+        }
+
+        .vault-panel {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(10, 20, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            border-radius: 64px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 200, 50, 0.2) inset;
+        }
+
+        /* header with wealth declaration */
+        .rich-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .mission-badge {
+            background: #1e2c3a;
+            border-radius: 100px;
+            padding: 0.4rem 1.8rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+            letter-spacing: 3px;
+            color: #ffd966;
+            border: 1px solid #f0b34b;
+            box-shadow: 0 0 15px #ffb34740;
+            margin-bottom: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .wealth-declaration {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            text-align: center;
+            background: linear-gradient(135deg, #ffe69b, #ffd700, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 4px 10px #00000070);
+            max-width: 900px;
+        }
+
+        .wealth-declaration span {
+            background: #00000030;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+        }
+
+        .sub-mission {
+            font-size: 1.3rem;
+            color: #bcd5e6;
+            margin-top: 1rem;
+            border-bottom: 2px dashed #ffd96660;
+            padding-bottom: 0.7rem;
+        }
+
+        /* timer highlight */
+        .countdown-hard {
+            background: #071117;
+            border-radius: 60px;
+            padding: 2rem 2rem 1.8rem;
+            margin: 2rem 0 2.2rem;
+            border: 1px solid #ffd96680;
+            box-shadow: 0 20px 30px -10px black;
+        }
+
+        .timer-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .deadline-fixed {
+            font-size: 1.4rem;
+            background: #122b38;
+            padding: 0.4rem 1.8rem;
+            border-radius: 60px;
+            border: 1px solid #5f9ea0;
+            color: #b7e4ff;
+        }
+
+        .deadline-fixed strong {
+            color: #ffdb7c;
+            font-size: 1.7rem;
+            margin-left: 8px;
+        }
+
+        .urgency {
+            font-size: 1.6rem;
+            color: #ffb347;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1b3140;
+            padding: 0.3rem 2rem;
+            border-radius: 60px;
+        }
+
+        .countdown-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .unit-block {
+            background: #0d1d29;
+            border-radius: 30px;
+            padding: 1.5rem 0.5rem 1rem 0.5rem;
+            min-width: 110px;
+            flex: 1 1 0;
+            border: 1px solid #4b6f8a;
+            box-shadow: 0 10px 0 #051016;
+        }
+
+        .unit-number {
+            font-size: 4.8rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(180deg, #ffffff, #fedb9f);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px #ffae42;
+        }
+
+        .unit-label {
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #99c6e9;
+        }
+
+        /* wealth blocks */
+        .wealth-accelerators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 40px 0 30px;
+        }
+
+        .wealth-card {
+            background: #10222ec0;
+            border-radius: 40px;
+            padding: 2rem 1.8rem;
+            flex: 1 1 250px;
+            border: 1px solid;
+            border-image-slice: 1;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 15px 25px -12px #000000cc;
+            transition: transform 0.2s;
+        }
+
+        .wealth-card:hover {
+            transform: translateY(-6px);
+            border-color: #ffd966;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .card-desc {
+            font-size: 1rem;
+            margin: 15px 0 10px;
+            color: #cbdae6;
+            line-height: 1.5;
+        }
+
+        .card-goal {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff0c0;
+            letter-spacing: 2px;
+        }
+
+        /* mindset ticker */
+        .mindset-ticker {
+            background: #0f2632;
+            border-radius: 80px;
+            padding: 1.2rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            border: 1px solid #ffb85b;
+        }
+
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
+
+        .ticker-item .label {
+            color: #aad0f0;
+            font-weight: 300;
+        }
+
+        .ticker-item .value {
+            font-weight: 700;
+            color: #ffe49e;
+            font-size: 1.7rem;
+        }
+
+        .footer-motivation {
+            margin-top: 35px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ffecb3;
+            border-top: 1px dashed #f0b34b60;
+            padding-top: 25px;
+        }
+
+        .highlight {
+            color: #ffd966;
+            font-weight: 700;
+        }
+
+        @media (max-width: 650px) {
+            .vault-panel { padding: 1.5rem; }
+            .wealth-declaration { font-size: 2.5rem; }
+            .unit-number { font-size: 3.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="vault-panel">
+        <!-- RICH MISSION STATEMENT -->
+        <div class="rich-header">
+            <div class="mission-badge">🔥 5‑YEAR WEALTH SPRINT 🔥</div>
+            <div class="wealth-declaration">
+                MASSIVELY RICH <span>BEFORE</span> MARCH 2031
+            </div>
+            <div class="sub-mission">The timer started March 17, 2026 — every second compounds</div>
+        </div>
+
+        <!-- THE COUNTDOWN (exactly 5 years, live) -->
+        <div class="countdown-hard">
+            <div class="timer-label">
+                <div class="deadline-fixed">
+                    ⏳ DEADLINE: <strong>MARCH 2031</strong>
+                </div>
+                <div class="urgency">
+                    <span>⏰</span> WEALTH WINDOW OPEN
+                </div>
+            </div>
+
+            <!-- dynamic timer injected via JS -->
+            <div class="countdown-grid" id="wealthTimer">
+                <div class="unit-block">
+                    <div class="unit-number" id="years">5</div>
+                    <div class="unit-label">years</div>
+                </div>
+                <div class="unit-block">
+                    <div class="unit-number" id="months">0</div>
+                    <div class="unit-label">months</div>
+                </div>
+                <div class="unit-block">
+                    <div class="unit-number" id="days">0</div>
+                    <div class="unit-label">days</div>
+                </div>
+                <div class="unit-block">
+                    <div class="unit-number" id="hours">0</div>
+                    <div class="unit-label">hours</div>
+                </div>
+                <div class="unit-block">
+                    <div class="unit-number" id="minutes">0</div>
+                    <div class="unit-label">minutes</div>
+                </div>
+                <div class="unit-block">
+                    <div class="unit-number" id="seconds">0</div>
+                    <div class="unit-label">seconds</div>
+                </div>
+            </div>
+
+            <!-- realtime status with wealth twist -->
+            <div style="text-align: center; margin-top: 20px; font-size: 1.4rem; background: #0b1c28; padding: 12px; border-radius: 60px;" id="wealthMessage">
+                ⏳ LOADING WEALTH TIMER...
+            </div>
+        </div>
+
+        <!-- WEALTH BLOCKS : massive rich mindset -->
+        <div class="wealth-accelerators">
+            <div class="wealth-card">
+                <div class="card-icon">💎</div>
+                <div class="card-title">asset compound</div>
+                <div class="card-desc">Equities · real estate · royalties · exponential stacking</div>
+                <div class="card-goal">$10M+</div>
+            </div>
+            <div class="wealth-card">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">venture multiple</div>
+                <div class="card-desc">Own equity, scalable systems, aggressive upside</div>
+                <div class="card-goal">100x return</div>
+            </div>
+            <div class="wealth-card">
+                <div class="card-icon">🏦</div>
+                <div class="card-title">liquid freedom</div>
+                <div class="card-desc">Passive income > monthly expenses by 2031</div>
+                <div class="card-goal">∞ wealth</div>
+            </div>
+        </div>
+
+        <!-- mindset ticker : daily reminder -->
+        <div class="mindset-ticker">
+            <div class="ticker-item"><span class="label">DAILY ACTION:</span> <span class="value">LEARN · EARN · INVEST</span></div>
+            <div class="ticker-item"><span class="label">MINDSET:</span> <span class="value">MASSIVELY RICH</span></div>
+            <div class="ticker-item"><span class="label">DEADLINE:</span> <span class="value" id="tickerDeadline">MARCH 2031</span></div>
+        </div>
+
+        <div class="footer-motivation">
+            ⚡ The countdown started <span class="highlight">March 17, 2026</span> · 5 years to become massively rich.  
+            Every second is a asset. No pause. No rewind.
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- FIXED DATES ----------
+            const START = new Date(2026, 2, 17, 0, 0, 0);    // March 17 2026
+            const END = new Date(2031, 2, 17, 0, 0, 0);      // March 17 2031
+
+            // DOM elements
+            const yearsEl = document.getElementById('years');
+            const monthsEl = document.getElementById('months');
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            const wealthMsg = document.getElementById('wealthMessage');
+            const tickerDeadline = document.getElementById('tickerDeadline');
+
+            // helper for plural if needed (just for display)
+            function getRemaining(now) {
+                // before start
+                if (now < START) {
+                    const totalMs = END - START; // full 5 years
+                    return {
+                        stage: 'BEFORE',
+                        years: 5,
+                        months: 0,
+                        days: 0,
+                        hours: 0,
+                        minutes: 0,
+                        seconds: 0,
+                        msToStart: START - now
+                    };
+                }
+                // after end (expired)
+                if (now >= END) {
+                    return {
+                        stage: 'EXPIRED',
+                        years: 0,
+                        months: 0,
+                        days: 0,
+                        hours: 0,
+                        minutes: 0,
+                        seconds: 0
+                    };
+                }
+                // active countdown
+                let y = END.getFullYear() - now.getFullYear();
+                let m = END.getMonth() - now.getMonth();
+                let d = END.getDate() - now.getDate();
+                let h = END.getHours() - now.getHours();
+                let min = END.getMinutes() - now.getMinutes();
+                let sec = END.getSeconds() - now.getSeconds();
+
+                // negative adjustments
+                if (sec < 0) { sec += 60; min--; }
+                if (min < 0) { min += 60; h--; }
+                if (h < 0) { h += 24; d--; }
+                if (d < 0) {
+                    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                    d += prevMonth.getDate();
+                    m--;
+                }
+                if (m < 0) { m += 12; y--; }
+                if (y < 0) y = 0;
+
+                return {
+                    stage: 'ACTIVE',
+                    years: y,
+                    months: m,
+                    days: d,
+                    hours: h,
+                    minutes: min,
+                    seconds: sec
+                };
+            }
+
+            function updateDisplay() {
+                const now = new Date();
+                const rem = getRemaining(now);
+
+                // common update for numbers
+                yearsEl.innerText = rem.years;
+                monthsEl.innerText = rem.months;
+                daysEl.innerText = rem.days;
+                hoursEl.innerText = rem.hours;
+                minutesEl.innerText = rem.minutes;
+                secondsEl.innerText = rem.seconds;
+
+                // dynamic message linked to wealth
+                if (now < START) {
+                    const daysToStart = Math.floor(rem.msToStart / (1000 * 60 * 60 * 24));
+                    const hoursToStart = Math.floor((rem.msToStart % (86400000)) / (3600000));
+                    wealthMsg.innerHTML = `⏸️ WEALTH COUNTDOWN NOT YET ACTIVE · starts in ${daysToStart}d ${hoursToStart}h — prepare mind, stack skills`;
+                } else if (now >= END) {
+                    wealthMsg.innerHTML = `🏁 MARCH 2031 DEADLINE REACHED · Are you massively rich? The timer finished. NOW is the moment.`;
+                } else {
+                    const totalDur = END - START;
+                    const elapsed = now - START;
+                    const percent = (elapsed / totalDur) * 100;
+                    wealthMsg.innerHTML = `⚡ WEALTH ACCUMULATION: ${percent.toFixed(3)}% ELAPSED · ${rem.years}y ${rem.months}m ${rem.days}d left · MAKE EVERY SECOND COUNT`;
+                }
+
+                // ticker deadline
+                tickerDeadline.innerText = 'MARCH 2031';
+            }
+
+            // initial update
+            updateDisplay();
+            // set interval every second
+            const interval = setInterval(updateDisplay, 1000);
+
+            // cleanup (if page gets navigated etc, but fine)
+            window.addEventListener('beforeunload', () => clearInterval(interval));
+        })();
+    </script>
+    <!-- extra emphasis: deploy anywhere, timer respects local tz -->
+</body>
+</html>
