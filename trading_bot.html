@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polymarket AI Trading System — $200 Playbook</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --border: #1e2230;
+    --accent: #00e5a0;
+    --accent2: #7c6bff;
+    --accent3: #ff6b6b;
+    --accent4: #ffb347;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --code-bg: #0d1117;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0a0c0f 0%, #0f1520 50%, #0a0e1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40px; left: -40px; right: -40px;
+    height: 300px;
+    background: radial-gradient(ellipse at 30% 50%, rgba(0,229,160,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 30%, rgba(124,107,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.3);
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(22px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.2;
+    max-width: 700px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-sub {
+    color: var(--muted);
+    margin-top: 14px;
+    max-width: 600px;
+    font-size: 14px;
+  }
+
+  .capital-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 24px;
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.2);
+    padding: 10px 20px;
+    border-radius: 4px;
+  }
+
+  .capital-badge .amount {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .capital-badge .label { color: var(--muted); font-size: 13px; }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    gap: 4px;
+    padding: 14px 40px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav a {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 3px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .nav a:hover, .nav a.active {
+    color: var(--accent);
+    background: rgba(0,229,160,0.08);
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 40px; }
+  .section { padding: 50px 0; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(18px, 3vw, 26px);
+    font-weight: 700;
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  /* CARDS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  @media (max-width: 700px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .container { padding: 0 20px; }
+    .hero { padding: 40px 20px 36px; }
+    .nav { padding: 14px 20px; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 22px;
+  }
+
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-purple { border-left: 3px solid var(--accent2); }
+  .card-red { border-left: 3px solid var(--accent3); }
+  .card-orange { border-left: 3px solid var(--accent4); }
+
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+
+  .card-title.purple { color: var(--accent2); }
+  .card-title.red { color: var(--accent3); }
+  .card-title.orange { color: var(--accent4); }
+
+  .card p { color: var(--muted); font-size: 13.5px; }
+
+  /* STAT BLOCKS */
+  .stat-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 22px;
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-val.purple { color: var(--accent2); }
+  .stat-val.red { color: var(--accent3); }
+  .stat-val.orange { color: var(--accent4); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .code-lang {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .code-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.red { background: #ff5f57; }
+  .dot.yellow { background: #febc2e; }
+  .dot.green { background: #28c840; }
+
+  .code-body {
+    padding: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+    color: #c9d1d9;
+  }
+
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .num { color: #79c0ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .var { color: #ffa657; }
+
+  /* RISK TABLE */
+  .risk-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  .risk-table th {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .risk-table td {
+    font-size: 13px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(30,34,48,0.7);
+  }
+  .risk-table tr:last-child td { border-bottom: none; }
+  .risk-table .label { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; }
+  .risk-table .val { color: var(--accent); font-family: 'Space Mono', monospace; }
+  .risk-table .note { color: var(--text); font-size: 12.5px; }
+
+  /* ALERT BOXES */
+  .alert {
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .alert-warn {
+    background: rgba(255,179,71,0.07);
+    border: 1px solid rgba(255,179,71,0.25);
+    color: #f5c967;
+  }
+
+  .alert-danger {
+    background: rgba(255,107,107,0.07);
+    border: 1px solid rgba(255,107,107,0.25);
+    color: #ff9a9a;
+  }
+
+  .alert-info {
+    background: rgba(0,229,160,0.06);
+    border: 1px solid rgba(0,229,160,0.2);
+    color: #80f5cf;
+  }
+
+  .alert-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 20px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .flow-step::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 38px;
+    bottom: -10px;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .flow-step:last-child::before { display: none; }
+
+  .flow-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,229,160,0.1);
+    border: 1px solid rgba(0,229,160,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .flow-content {
+    flex: 1;
+    padding: 8px 0 24px;
+  }
+
+  .flow-content h4 {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .flow-content p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ALLOCATION BAR */
+  .alloc-item {
+    margin-bottom: 14px;
+  }
+
+  .alloc-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .alloc-name { font-size: 13px; color: var(--text); }
+  .alloc-val { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent); }
+
+  .alloc-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .alloc-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  /* PILL */
+  .pill {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 2px;
+  }
+
+  .pill-green { background: rgba(0,229,160,0.12); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+  .pill-purple { background: rgba(124,107,255,0.12); color: var(--accent2); border: 1px solid rgba(124,107,255,0.2); }
+  .pill-red { background: rgba(255,107,107,0.12); color: var(--accent3); border: 1px solid rgba(255,107,107,0.2); }
+  .pill-orange { background: rgba(255,179,71,0.12); color: var(--accent4); border: 1px solid rgba(255,179,71,0.2); }
+
+  /* TOOLS LIST */
+  .tool-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .tool-item:last-child { border-bottom: none; }
+
+  .tool-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: var(--border);
+  }
+
+  .tool-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .tool-desc { font-size: 12.5px; color: var(--muted); }
+
+  /* FOOTER */
+  .footer {
+    padding: 30px 40px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  p { margin-bottom: 10px; }
+
+  ul { padding-left: 20px; color: var(--muted); font-size: 13.5px; }
+  ul li { margin-bottom: 6px; }
+  li strong { color: var(--text); }
+
+  h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    margin: 22px 0 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">⚡ AI Trading System</div>
+    <h1>Polymarket <span>Automated</span><br>Trading Playbook</h1>
+    <p class="hero-sub">A complete research brief, wallet analysis framework, automation logic, and conservative risk strategy for systematic prediction market trading.</p>
+    <div class="capital-badge">
+      <div class="amount">$200</div>
+      <div class="label">Starting Capital · USDC on Polygon · Conservative Mode</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#mechanics" class="active">Market Mechanics</a>
+  <a href="#wallets">Wallet Analysis</a>
+  <a href="#strategy">Strategy</a>
+  <a href="#automation">Automation Logic</a>
+  <a href="#risk">Risk Rules</a>
+  <a href="#tools">Tools Stack</a>
+  <a href="#code">Code</a>
+</nav>
+
+<!-- SECTION 1: MARKET MECHANICS -->
+<div class="section" id="mechanics">
+  <div class="container">
+    <div class="section-label">Section 01</div>
+    <div class="section-title">How Polymarket Works</div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val">CLOB</div><div class="stat-label">Central Limit Order Book</div></div>
+      <div class="stat"><div class="stat-val purple">USDC</div><div class="stat-label">Settlement Currency (Polygon)</div></div>
+      <div class="stat"><div class="stat-val orange">$1.00</div><div class="stat-label">Max payout per share pair</div></div>
+      <div class="stat"><div class="stat-val red">0%</div><div class="stat-label">Maker fees (takers ~1-2%)</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-title">Core Mechanics</div>
+        <p>Each market has YES and NO tokens. Holding 1 YES + 1 NO always equals $1.00 USDC at resolution. You can buy YES at $0.30 if you believe an event has >30% probability — if it resolves YES, you profit $0.70 per share.</p>
+      </div>
+      <div class="card card-purple">
+        <div class="card-title purple">Order Types</div>
+        <p>Polymarket operates a hybrid CLOB: <strong>Limit orders</strong> (maker, 0% fee, add liquidity) and <strong>Market orders</strong> (taker, ~1-2% fee, instant fill). For automation, prefer limit orders near the mid-price to capture the spread.</p>
+      </div>
+      <div class="card card-orange">
+        <div class="card-title orange">Token Math</div>
+        <p>YES price + NO price ≈ $1.00 (minus spread). If YES = $0.65, NO = $0.35. Mispriced markets exist when YES + NO ≠ $1.00, creating arbitrage. Resolution is handled by UMA's Optimistic Oracle on-chain.</p>
+      </div>
+      <div class="card card-red">
+        <div class="card-title red">Liquidity Reality</div>
+        <p>High-volume markets (&gt;$500K) have tight 1-2¢ spreads. Low-volume markets (&lt;$50K) can have 5-15¢ spreads. Your $200 capital is safest in markets with &gt;$100K volume to avoid moving the price and getting filled at bad levels.</p>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>Jurisdiction Notice:</strong> Following CFTC approval in September 2025, Polymarket launched a regulated US app in December 2025, currently invite-only. Verify you are eligible to trade from your jurisdiction before depositing. Terms of Service may restrict certain regions.</div>
+    </div>
+
+    <h3>Market Discovery — API Endpoints You'll Use</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+        <div class="code-lang">REST ENDPOINTS</div>
+      </div>
+      <div class="code-body"><span class="cmt"># Gamma API — market metadata (no auth required for reads)</span>
+GET https://gamma-api.polymarket.com/markets?active=true&limit=50&order=volume
+
+<span class="cmt"># CLOB API — live order book</span>
+GET https://clob.polymarket.com/book?token_id={TOKEN_ID}
+
+<span class="cmt"># CLOB API — recent trades</span>
+GET https://clob.polymarket.com/trades?token_id={TOKEN_ID}&limit=20
+
+<span class="cmt"># Data API — wallet positions</span>
+GET https://data-api.polymarket.com/positions?user={WALLET_ADDRESS}
+
+<span class="cmt"># Data API — leaderboard (top traders)</span>
+GET https://data-api.polymarket.com/leaderboard?window=7d&sortBy=profit</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: WALLET ANALYSIS -->
+<div class="section" id="wallets">
+  <div class="container">
+    <div class="section-label">Section 02</div>
+    <div class="section-title">Smart Money — Wallet Analysis Framework</div>
+
+    <p style="color: var(--muted); margin-bottom: 20px;">All Polymarket trades are on-chain (Polygon). Every wallet's full history is publicly visible. The goal is to identify wallets with <em>repeatable</em> edges — not lucky one-time wins.</p>
+
+    <div class="alert alert-info">
+      <div class="alert-icon">💡</div>
+      <div><strong>Key Insight:</strong> Only ~16.8% of wallets on Polymarket show net gains. Focus on wallets with 55%+ win rates over 50+ trades. High P&amp;L alone is misleading — it can reflect one concentrated political bet.</div>
+    </div>
+
+    <h3>Wallet Scoring Criteria</h3>
+    <table class="risk-table">
+      <tr>
+        <th>Metric</th><th>Minimum Bar</th><th>Strong Signal</th><th>Why It Matters</th>
+      </tr>
+      <tr>
+        <td class="label">Total Trade Count</td>
+        <td class="val">50+</td>
+        <td class="val">200+</td>
+        <td class="note">Filters out lucky streaks on single events</td>
+      </tr>
+      <tr>
+        <td class="label">Win Rate</td>
+        <td class="val">55%</td>
+        <td class="val">62%+</td>
+        <td class="note">Anything below 50% is noise or market-making</td>
+      </tr>
+      <tr>
+        <td class="label">Net P&amp;L</td>
+        <td class="val">$10K+</td>
+        <td class="val">$50K+</td>
+        <td class="note">Confirms skill, not luck on a single bet</td>
+      </tr>
+      <tr>
+        <td class="label">Market Diversity</td>
+        <td class="val">3+ categories</td>
+        <td class="val">5+ categories</td>
+        <td class="note">Single-topic whales are event-dependent</td>
+      </tr>
+      <tr>
+        <td class="label">Consistency</td>
+        <td class="val">Wins across 3+ months</td>
+        <td class="val">Profitable every quarter</td>
+        <td class="note">Avoids fading strategies</td>
+      </tr>
+      <tr>
+        <td class="label">Avg. Entry Timing</td>
+        <td class="val">Pre-consensus</td>
+        <td class="val">Early in market lifecycle</td>
+        <td class="note">Late entries have less edge left</td>
+      </tr>
+    </table>
+
+    <h3>Where to Find Qualifying Wallets</h3>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">Polymarket Leaderboard</div>
+        <p>Native leaderboard at polymarket.com — sort by <strong>profit</strong>, not volume. Volume leaders are often market makers capturing spreads.</p>
+      </div>
+      <div class="card">
+        <div class="card-title purple">PolyTrack / Polywhaler</div>
+        <p>Third-party tools with deeper analytics: win rates, position timing, per-category performance. Filter for 55%+ win rate over 50+ trades.</p>
+      </div>
+      <div class="card">
+        <div class="card-title orange">Polygonscan + Dune</div>
+        <p>Raw on-chain data. Filter USDC transfers to Polymarket contracts. Surfaces wallets not on public leaderboards. Time-intensive but thorough.</p>
+      </div>
+    </div>
+
+    <h3>Copy-Trade Signal Rules</h3>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <h4>Consensus Filter</h4>
+          <p>Only act when 2–3 tracked whale wallets take the SAME position within a short window (15–60 min). Single whale entries can be noise or hedging.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <h4>Price Slippage Check</h4>
+          <p>If the current price has moved &gt;10% from the whale's entry, skip the trade. Your edge has likely already disappeared — the market repriced the information.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <h4>Liquidity Guard</h4>
+          <p>Never enter markets with &lt;$100K total volume when copy-trading. Thin markets mean your order itself moves the price unfavorably.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <h4>Independent Exit</h4>
+          <p>Set your own profit target (1.5–2.5x) and stop-loss (-30% of position). Don't wait to see if the whale exits — they have much more capital tolerance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: STRATEGY -->
+<div class="section" id="strategy">
+  <div class="container">
+    <div class="section-label">Section 03</div>
+    <div class="section-title">$200 Capital — Strategy Design</div>
+
+    <p style="color: var(--muted); margin-bottom: 20px;">With $200, your priority is <strong>capital preservation + selective high-confidence plays</strong>. Spreading across 10+ markets dilutes your returns; concentrating in 1-2 markets is ruin risk. The sweet spot is 3-6 active positions.</p>
+
+    <h3>Capital Allocation Model</h3>
+
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">🐋 Whale Copy Trades (high-conviction)</span><span class="alloc-val">$80 (40%)</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:40%; background: var(--accent);"></div></div>
+    </div>
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">📉 Mean Reversion / Overreaction Fades</span><span class="alloc-val">$50 (25%)</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:25%; background: var(--accent2);"></div></div>
+    </div>
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">⚖️ Cross-Platform Arbitrage</span><span class="alloc-val">$40 (20%)</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:20%; background: var(--accent4);"></div></div>
+    </div>
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">💰 Cash Reserve (dry powder)</span><span class="alloc-val">$30 (15%)</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:15%; background: var(--muted);"></div></div>
+    </div>
+
+    <h3>Three Core Strategies</h3>
+
+    <div class="card card-accent" style="margin-bottom: 14px;">
+      <div class="card-title">STRATEGY A — Whale Copy with Lag Filter</div>
+      <p><strong style="color:var(--text)">How it works:</strong> Monitor 5–8 pre-screened high-win-rate wallets via the Data API. When 2+ wallets buy the same token within 30 minutes, AND current price is within 8% of their entry, enter a proportional position.</p>
+      <br>
+      <p><strong style="color:var(--text)">Position Size:</strong> Max $20 per trade (10% of capital). Scale to $30 only if 3+ whales confirm.</p>
+      <br>
+      <p><strong style="color:var(--text)">Exit:</strong> Sell at +50% gain OR -30% loss OR when 1 confirming whale exits, whichever comes first.</p>
+      <br>
+      <div><span class="pill pill-green">Best for: Liquid markets &gt;$200K</span> <span class="pill pill-green">Entry delay: 5-15 min after whale</span></div>
+    </div>
+
+    <div class="card card-purple" style="margin-bottom: 14px;">
+      <div class="card-title purple">STRATEGY B — Overreaction Fade</div>
+      <p><strong style="color:var(--text)">How it works:</strong> When a market price moves &gt;15% in &lt;2 hours due to a news event, look for over/underreaction. If YES shoots from 0.30 → 0.55 on ambiguous news, and whale wallets are NOT following, fade the move by buying NO (which dropped from 0.70 → 0.45).</p>
+      <br>
+      <p><strong style="color:var(--text)">Signal:</strong> Price delta &gt;15% in 2h + low whale participation + thin order book above current price.</p>
+      <br>
+      <p><strong style="color:var(--text)">Position Size:</strong> Max $15 per trade. Higher uncertainty requires smaller size.</p>
+      <br>
+      <div><span class="pill pill-purple">Best for: Crypto & finance markets</span> <span class="pill pill-purple">Hold: 1-48 hours</span></div>
+    </div>
+
+    <div class="card card-orange">
+      <div class="card-title orange">STRATEGY C — Cross-Platform Arbitrage (Polymarket vs Kalshi)</div>
+      <p><strong style="color:var(--text)">How it works:</strong> Same event priced differently on Polymarket vs Kalshi. Buy YES on the cheaper platform, NO on the more expensive one. Lock in guaranteed profit regardless of outcome.</p>
+      <br>
+      <p><strong style="color:var(--text)">Example:</strong> "Bitcoin &gt;$95K" = 45¢ on Polymarket, 52¢ on Kalshi. Buy YES on Polymarket + NO on Kalshi. Net expected profit = 3-5¢ per dollar deployed after fees.</p>
+      <br>
+      <p><strong style="color:var(--text)">Constraint:</strong> Must account for taker fees (~1-2%), capital lock-up time, and gas costs on Polygon. Only viable when spread &gt;4¢.</p>
+      <br>
+      <div><span class="pill pill-orange">Best for: High-volume markets</span> <span class="pill pill-orange">Risk: Capital lockup</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: AUTOMATION LOGIC -->
+<div class="section" id="automation">
+  <div class="container">
+    <div class="section-label">Section 04</div>
+    <div class="section-title">Automation Logic — Complete Flow</div>
+
+    <div class="alert alert-warn">
+      <div class="alert-icon">🔧</div>
+      <div><strong>Implementation Note:</strong> You'll need Python 3.10+, the official <code>py-clob-client</code> or <code>polymarket-apis</code> PyPI package, a Polygon wallet with USDC, and an approved proxy wallet on Polymarket. API keys are generated in the Polymarket UI under Settings → API.</div>
+    </div>
+
+    <h3>Master Bot Architecture</h3>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <h4>SCANNER — Market Discovery Loop (every 5 min)</h4>
+          <p>Pull active markets from Gamma API. Filter by: volume &gt;$100K, not resolving within 24h, spread &lt;5¢. Build a watchlist of 10-20 qualifying markets.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <h4>WHALE MONITOR — Wallet Tracker (every 2 min)</h4>
+          <p>Poll Data API for new trades from your pre-screened wallet list. Detect when 2+ wallets take the same side in a watchlist market within a rolling 30-min window.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <h4>SIGNAL VALIDATOR — Entry Filter</h4>
+          <p>Check: (a) Current price within 8% of whale entry. (b) Order book has enough depth to absorb your size without moving price &gt;2¢. (c) Daily loss limit not breached. (d) Max open positions ≤ 5.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <h4>ORDER EXECUTOR — Place Limit Order</h4>
+          <p>Place limit order at mid-price or 1¢ below ask (to be filled as maker, saving fees). Size = min($20, 10% of remaining capital). Log the trade with entry price, timestamp, triggering wallets.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-content">
+          <h4>POSITION MONITOR — Exit Logic (every 10 min)</h4>
+          <p>For each open position: check current price vs. entry. If +50% → place limit sell. If -30% → place market sell (accept taker fee). If whale exits → flag for manual review or auto-exit.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Python Pseudocode — Core Engine</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+        <div class="code-lang">PYTHON · bot_engine.py</div>
+      </div>
+      <div class="code-body"><span class="kw">import</span> <span class="var">time</span>, <span class="var">logging</span>
+<span class="kw">from</span> <span class="var">polymarket_apis</span> <span class="kw">import</span> <span class="fn">GammaClient</span>, <span class="fn">DataClient</span>, <span class="fn">ClobClient</span>
+<span class="kw">from</span> <span class="var">config</span> <span class="kw">import</span> <span class="var">WALLET_ADDRESS</span>, <span class="var">API_KEY</span>, <span class="var">WATCHED_WALLETS</span>
+
+<span class="cmt"># ─────────────────────────────────────────────
+# CONFIG — Conservative $200 parameters
+# ─────────────────────────────────────────────</span>
+<span class="var">CONFIG</span> = {
+    <span class="str">"total_capital"</span>:      <span class="num">200.0</span>,     <span class="cmt"># USDC</span>
+    <span class="str">"max_position_pct"</span>:   <span class="num">0.10</span>,      <span class="cmt"># 10% per trade = $20 max</span>
+    <span class="str">"max_open_positions"</span>: <span class="num">5</span>,
+    <span class="str">"min_market_volume"</span>:  <span class="num">100_000</span>,   <span class="cmt"># $100K minimum</span>
+    <span class="str">"max_spread"</span>:         <span class="num">0.05</span>,      <span class="cmt"># 5¢ max spread</span>
+    <span class="str">"whale_window_min"</span>:   <span class="num">30</span>,        <span class="cmt"># consensus window</span>
+    <span class="str">"whale_consensus"</span>:    <span class="num">2</span>,         <span class="cmt"># min 2 wallets agree</span>
+    <span class="str">"max_price_lag_pct"</span>:  <span class="num">0.08</span>,      <span class="cmt"># skip if price moved &gt;8%</span>
+    <span class="str">"take_profit_pct"</span>:    <span class="num">0.50</span>,      <span class="cmt"># +50% → sell</span>
+    <span class="str">"stop_loss_pct"</span>:      <span class="num">-0.30</span>,     <span class="cmt"># -30% → cut loss</span>
+    <span class="str">"daily_loss_limit"</span>:   <span class="num">20.0</span>,      <span class="cmt"># max $20 loss per day</span>
+}
+
+<span class="cmt"># ─────────────────────────────────────────────
+# SCANNER — find qualifying markets
+# ─────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">scan_markets</span>(gamma: <span class="var">GammaClient</span>) -> <span class="var">list</span>:
+    markets = gamma.<span class="fn">get_markets</span>(active=<span class="kw">True</span>, limit=<span class="num">100</span>)
+    watchlist = []
+    <span class="kw">for</span> m <span class="kw">in</span> markets:
+        <span class="kw">if</span> (m.volume >= <span class="var">CONFIG</span>[<span class="str">"min_market_volume"</span>]
+            <span class="kw">and</span> m.spread <= <span class="var">CONFIG</span>[<span class="str">"max_spread"</span>]
+            <span class="kw">and</span> m.hours_to_close > <span class="num">24</span>):
+            watchlist.<span class="fn">append</span>(m)
+    <span class="kw">return</span> watchlist
+
+<span class="cmt"># ─────────────────────────────────────────────
+# WHALE MONITOR — detect consensus trades
+# ─────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">check_whale_consensus</span>(
+    data: <span class="var">DataClient</span>,
+    watchlist: <span class="var">list</span>,
+    recent_trades: <span class="var">dict</span>
+) -> <span class="var">list</span>:
+    signals = []
+    <span class="kw">for</span> wallet <span class="kw">in</span> <span class="var">WATCHED_WALLETS</span>:
+        trades = data.<span class="fn">get_trades</span>(user=wallet, window_min=<span class="num">30</span>)
+        <span class="kw">for</span> trade <span class="kw">in</span> trades:
+            <span class="kw">if</span> trade.market_id <span class="kw">in</span> [m.id <span class="kw">for</span> m <span class="kw">in</span> watchlist]:
+                key = (trade.market_id, trade.side)  <span class="cmt"># (market, YES/NO)</span>
+                recent_trades[key].<span class="fn">append</span>({
+                    <span class="str">"wallet"</span>: wallet,
+                    <span class="str">"price"</span>: trade.price,
+                    <span class="str">"time"</span>: trade.timestamp
+                })
+    <span class="cmt"># Emit signal if consensus threshold met</span>
+    <span class="kw">for</span> key, entries <span class="kw">in</span> recent_trades.<span class="fn">items</span>():
+        unique_wallets = <span class="fn">set</span>(e[<span class="str">"wallet"</span>] <span class="kw">for</span> e <span class="kw">in</span> entries)
+        <span class="kw">if</span> <span class="fn">len</span>(unique_wallets) >= <span class="var">CONFIG</span>[<span class="str">"whale_consensus"</span>]:
+            avg_entry = <span class="fn">sum</span>(e[<span class="str">"price"</span>] <span class="kw">for</span> e <span class="kw">in</span> entries) / <span class="fn">len</span>(entries)
+            signals.<span class="fn">append</span>({<span class="str">"market_id"</span>: key[<span class="num">0</span>], <span class="str">"side"</span>: key[<span class="num">1</span>],
+                              <span class="str">"avg_whale_entry"</span>: avg_entry,
+                              <span class="str">"confirming_wallets"</span>: unique_wallets})
+    <span class="kw">return</span> signals
+
+<span class="cmt"># ─────────────────────────────────────────────
+# SIGNAL VALIDATOR — gate before execution
+# ─────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">validate_signal</span>(signal, clob: <span class="var">ClobClient</span>, portfolio) -> <span class="var">bool</span>:
+    book = clob.<span class="fn">get_order_book</span>(signal[<span class="str">"market_id"</span>])
+    current_price = book.mid_price
+
+    <span class="cmt"># Gate 1: price hasn't moved too far</span>
+    lag = <span class="fn">abs</span>(current_price - signal[<span class="str">"avg_whale_entry"</span>]) / signal[<span class="str">"avg_whale_entry"</span>]
+    <span class="kw">if</span> lag > <span class="var">CONFIG</span>[<span class="str">"max_price_lag_pct"</span>]: <span class="kw">return</span> <span class="kw">False</span>
+
+    <span class="cmt"># Gate 2: not too many open positions</span>
+    <span class="kw">if</span> <span class="fn">len</span>(portfolio.open_positions) >= <span class="var">CONFIG</span>[<span class="str">"max_open_positions"</span>]: <span class="kw">return</span> <span class="kw">False</span>
+
+    <span class="cmt"># Gate 3: daily loss limit</span>
+    <span class="kw">if</span> portfolio.daily_loss >= <span class="var">CONFIG</span>[<span class="str">"daily_loss_limit"</span>]: <span class="kw">return</span> <span class="kw">False</span>
+
+    <span class="cmt"># Gate 4: order book depth (don't move price &gt;2¢)</span>
+    position_usdc = <span class="var">CONFIG</span>[<span class="str">"total_capital"</span>] * <span class="var">CONFIG</span>[<span class="str">"max_position_pct"</span>]
+    depth_ok = book.<span class="fn">can_absorb</span>(side=signal[<span class="str">"side"</span>], usdc=position_usdc, max_slippage=<span class="num">0.02</span>)
+    <span class="kw">return</span> depth_ok
+
+<span class="cmt"># ─────────────────────────────────────────────
+# ORDER EXECUTOR — place limit order
+# ─────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">place_entry</span>(signal, clob: <span class="var">ClobClient</span>, portfolio) -> <span class="var">dict</span>:
+    book = clob.<span class="fn">get_order_book</span>(signal[<span class="str">"market_id"</span>])
+    limit_price = <span class="fn">round</span>(book.best_ask - <span class="num">0.01</span>, <span class="num">2</span>)  <span class="cmt"># 1¢ below ask = maker order</span>
+    size_usdc = <span class="var">CONFIG</span>[<span class="str">"total_capital"</span>] * <span class="var">CONFIG</span>[<span class="str">"max_position_pct"</span>]
+    shares = size_usdc / limit_price
+
+    order = clob.<span class="fn">create_limit_order</span>(
+        token_id=signal[<span class="str">"market_id"</span>],
+        side=signal[<span class="str">"side"</span>],
+        price=limit_price,
+        size=shares,
+    )
+    portfolio.<span class="fn">add_position</span>({
+        <span class="str">"order_id"</span>: order.id,
+        <span class="str">"entry_price"</span>: limit_price,
+        <span class="str">"shares"</span>: shares,
+        <span class="str">"stop_loss"</span>: limit_price * (<span class="num">1</span> + <span class="var">CONFIG</span>[<span class="str">"stop_loss_pct"</span>]),
+        <span class="str">"take_profit"</span>: limit_price * (<span class="num">1</span> + <span class="var">CONFIG</span>[<span class="str">"take_profit_pct"</span>]),
+    })
+    logging.<span class="fn">info</span>(<span class="str">f"ORDER PLACED: {signal['side']} {shares:.1f} shares @ {limit_price}"</span>)
+    <span class="kw">return</span> order
+
+<span class="cmt"># ─────────────────────────────────────────────
+# MAIN LOOP
+# ─────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">run_bot</span>():
+    gamma, data, clob = <span class="fn">GammaClient</span>(), <span class="fn">DataClient</span>(), <span class="fn">ClobClient</span>(<span class="var">API_KEY</span>)
+    portfolio = <span class="fn">Portfolio</span>()
+    recent_trades = <span class="fn">defaultdict</span>(<span class="var">list</span>)
+
+    <span class="kw">while True</span>:
+        watchlist = <span class="fn">scan_markets</span>(gamma)
+        signals  = <span class="fn">check_whale_consensus</span>(data, watchlist, recent_trades)
+
+        <span class="kw">for</span> signal <span class="kw">in</span> signals:
+            <span class="kw">if</span> <span class="fn">validate_signal</span>(signal, clob, portfolio):
+                <span class="fn">place_entry</span>(signal, clob, portfolio)
+
+        portfolio.<span class="fn">monitor_exits</span>(clob, <span class="var">CONFIG</span>)  <span class="cmt"># check TP/SL</span>
+        <span class="fn">time.sleep</span>(<span class="num">120</span>)  <span class="cmt"># scan every 2 minutes</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: RISK RULES -->
+<div class="section" id="risk">
+  <div class="container">
+    <div class="section-label">Section 05</div>
+    <div class="section-title">Risk Management Rules — Hard Limits</div>
+
+    <div class="alert alert-danger">
+      <div class="alert-icon">🚨</div>
+      <div><strong>Non-Negotiable Rules:</strong> These limits must be enforced in code, not just "guidelines." The bot should refuse to place orders that violate them, even if a signal looks very strong.</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <table class="risk-table">
+          <tr><th colspan="2">Position-Level Rules</th></tr>
+          <tr>
+            <td class="label">Max single position</td>
+            <td class="val">$20 (10% of capital)</td>
+          </tr>
+          <tr>
+            <td class="label">Max with 3+ whales</td>
+            <td class="val">$30 (15% of capital)</td>
+          </tr>
+          <tr>
+            <td class="label">Take profit</td>
+            <td class="val">+50% gain</td>
+          </tr>
+          <tr>
+            <td class="label">Stop loss</td>
+            <td class="val">–30% of position</td>
+          </tr>
+          <tr>
+            <td class="label">Max slippage on entry</td>
+            <td class="val">2¢ from limit price</td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <table class="risk-table">
+          <tr><th colspan="2">Portfolio-Level Rules</th></tr>
+          <tr>
+            <td class="label">Max open positions</td>
+            <td class="val">5 simultaneously</td>
+          </tr>
+          <tr>
+            <td class="label">Daily loss limit</td>
+            <td class="val">$20 (10% of capital)</td>
+          </tr>
+          <tr>
+            <td class="label">Weekly loss limit</td>
+            <td class="val">$40 (20% of capital)</td>
+          </tr>
+          <tr>
+            <td class="label">Min market volume</td>
+            <td class="val">$100K</td>
+          </tr>
+          <tr>
+            <td class="label">Cash reserve</td>
+            <td class="val">$30 always free</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <h3>Market Category Limits</h3>
+    <p style="color:var(--muted); font-size: 13px; margin-bottom: 14px;">Don't over-concentrate in one category — correlated events can wipe multiple positions simultaneously.</p>
+
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">Politics / Elections</span><span class="alloc-val">Max $40 deployed</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:40%; background: var(--accent3);"></div></div>
+    </div>
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">Crypto / Finance</span><span class="alloc-val">Max $50 deployed</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:50%; background: var(--accent2);"></div></div>
+    </div>
+    <div class="alloc-item">
+      <div class="alloc-header"><span class="alloc-name">Sports / Entertainment</span><span class="alloc-val">Max $30 deployed</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:30%; background: var(--accent4);"></div></div>
+    </div>
+
+    <h3>Kill Switch Logic</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+        <div class="code-lang">PYTHON · risk_manager.py</div>
+      </div>
+      <div class="code-body"><span class="kw">def</span> <span class="fn">check_kill_switch</span>(portfolio, config) -> <span class="var">bool</span>:
+    <span class="str">"""Returns True if bot should halt all new trades."""</span>
+
+    <span class="cmt"># Hard stop: 20% daily drawdown</span>
+    <span class="kw">if</span> portfolio.daily_pnl <= -config[<span class="str">"daily_loss_limit"</span>]:
+        logging.<span class="fn">critical</span>(<span class="str">"KILL SWITCH: Daily loss limit hit. Halting."</span>)
+        <span class="kw">return True</span>
+
+    <span class="cmt"># Hard stop: total capital below $120 (40% drawdown)</span>
+    <span class="kw">if</span> portfolio.usdc_balance < <span class="num">120</span>:
+        logging.<span class="fn">critical</span>(<span class="str">"KILL SWITCH: 40% drawdown. Halting + alerting user."</span>)
+        <span class="fn">send_alert</span>(<span class="str">"⚠️ Bot halted — balance fell below $120"</span>)
+        <span class="kw">return True</span>
+
+    <span class="cmt"># Soft stop: 3 consecutive losses → pause 4 hours</span>
+    <span class="kw">if</span> portfolio.consecutive_losses >= <span class="num">3</span>:
+        logging.<span class="fn">warning</span>(<span class="str">"SOFT PAUSE: 3 losses in a row. Pausing 4h."</span>)
+        <span class="fn">time.sleep</span>(<span class="num">4</span> * <span class="num">3600</span>)
+
+    <span class="kw">return False</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: TOOLS -->
+<div class="section" id="tools">
+  <div class="container">
+    <div class="section-label">Section 06</div>
+    <div class="section-title">Recommended Tools Stack</div>
+
+    <div class="tool-item">
+      <div class="tool-icon">📦</div>
+      <div>
+        <div class="tool-name">polymarket-apis (PyPI)</div>
+        <div class="tool-desc">Unified Python client for Gamma, Data, CLOB, and WebSocket APIs. Includes Pydantic validation. Install: <code>pip install polymarket-apis</code></div>
+      </div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">🐳</div>
+      <div>
+        <div class="tool-name">PolyTrack / Polywhaler</div>
+        <div class="tool-desc">Third-party whale trackers with real-time alerts, P&L analytics, and win-rate filtering. Use to manually curate your <code>WATCHED_WALLETS</code> list before automating.</div>
+      </div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">📊</div>
+      <div>
+        <div class="tool-name">Dune Analytics</div>
+        <div class="tool-desc">SQL queries on Polygon blockchain data. Use to build historical win-rate dashboards for wallet screening. Free tier sufficient.</div>
+      </div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">⚡</div>
+      <div>
+        <div class="tool-name">Polymarket Official Agents (GitHub)</div>
+        <div class="tool-desc">Polymarket's own open-source agent framework (Python). Includes Chroma vector DB integration, news connectors, and CLI for trade execution. Good starting scaffold.</div>
+      </div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">🔔</div>
+      <div>
+        <div class="tool-name">Telegram / Discord Alerting</div>
+        <div class="tool-desc">Use python-telegram-bot or discord.py to receive real-time alerts: positions opened/closed, kill switch triggered, daily P&L summary.</div>
+      </div>
+    </div>
+    <div class="tool-item">
+      <div class="tool-icon">🌐</div>
+      <div>
+        <div class="tool-name">Polygonscan + Bitquery</div>
+        <div class="tool-desc">Raw on-chain data. Bitquery provides GraphQL for PredictionTrades on Polygon (realtime dataset, ~7 days history). Use for surfacing wallets not on public leaderboards.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: SETUP CODE -->
+<div class="section" id="code">
+  <div class="container">
+    <div class="section-label">Section 07</div>
+    <div class="section-title">Setup & Configuration Reference</div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+        <div class="code-lang">BASH · environment setup</div>
+      </div>
+      <div class="code-body"><span class="cmt"># 1. Install dependencies</span>
+pip install polymarket-apis python-dotenv requests
+
+<span class="cmt"># 2. Setup .env (NEVER commit this to git)</span>
+POLY_API_KEY=your_api_key
+POLY_API_SECRET=your_secret
+POLY_API_PASSPHRASE=your_passphrase
+WALLET_ADDRESS=0xYourPolygonWallet
+POLYGON_RPC=https://polygon-rpc.com
+
+<span class="cmt"># 3. Initialize proxy wallet (one-time, required)</span>
+<span class="cmt"># Run in Polymarket UI: Settings → API → Deploy Proxy Wallet</span>
+<span class="cmt"># Then approve USDC spending on the proxy contract</span>
+
+<span class="cmt"># 4. Verify connection</span>
+python -c <span class="str">"from polymarket_apis import ClobClient; c=ClobClient(); print(c.get_tick_sizes())"</span></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+        <div class="code-lang">PYTHON · config.py — whale wallet list template</div>
+      </div>
+      <div class="code-body"><span class="cmt"># Pre-screen these wallets manually using PolyTrack/Dune before adding
+# Criteria: 55%+ win rate, 50+ trades, $10K+ net P&L, 3+ market categories</span>
+
+<span class="var">WATCHED_WALLETS</span> = [
+    <span class="str">"0xABCD..."</span>,  <span class="cmt"># Example: 68% win rate, 210 trades, $47K P&L, crypto specialist</span>
+    <span class="str">"0x1234..."</span>,  <span class="cmt"># Example: 61% win rate, 89 trades, $22K P&L, politics + macro</span>
+    <span class="str">"0x5678..."</span>,  <span class="cmt"># Example: 57% win rate, 140 trades, $15K P&L, early-entry specialist</span>
+    <span class="cmt"># Add 4-6 more wallets for your basket</span>
+    <span class="cmt"># IMPORTANT: Review and rotate quarterly as strategies decay</span>
+]
+
+<span class="cmt"># Polymarket Data API endpoint for wallet activity</span>
+<span class="var">DATA_API</span>    = <span class="str">"https://data-api.polymarket.com"</span>
+<span class="var">GAMMA_API</span>   = <span class="str">"https://gamma-api.polymarket.com"</span>
+<span class="var">CLOB_API</span>    = <span class="str">"https://clob.polymarket.com"</span></div>
+    </div>
+
+    <div class="alert alert-info">
+      <div class="alert-icon">✅</div>
+      <div><strong>Getting Started Checklist:</strong><br>
+      1. Create Polymarket account and verify identity<br>
+      2. Deposit $200 USDC to Polygon (bridge from Ethereum or buy directly)<br>
+      3. Deploy proxy wallet in Polymarket UI (one-time gas fee ~$0.01)<br>
+      4. Generate API keys in Settings<br>
+      5. Manually screen 6–10 whale wallets using PolyTrack (free tier)<br>
+      6. Run bot in <strong>paper-trade mode</strong> for 2 weeks: log signals but don't execute<br>
+      7. Review logged signals, tune thresholds, then enable live trading
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  POLYMARKET AI TRADING SYSTEM · $200 CONSERVATIVE PLAYBOOK · FOR EDUCATIONAL USE
+  <br><br>
+  <span style="color: #4b5563; font-size: 10px;">Not financial advice. Prediction markets carry risk of total capital loss. Always verify jurisdiction eligibility before trading.</span>
+</div>
+
+</body>
+</html>
