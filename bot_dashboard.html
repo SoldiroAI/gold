@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Max HQ — Copy Trading Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f7f6;
+    --bg-tertiary: #f0efed;
+    --bg-info: #e6f1fb;
+    --bg-success: #eaf3de;
+    --bg-warning: #faeeda;
+    --bg-danger: #fcebeb;
+    --text-primary: #1a1a18;
+    --text-secondary: #5f5e5a;
+    --text-tertiary: #888780;
+    --text-info: #185fa5;
+    --text-success: #3b6d11;
+    --text-warning: #854f0b;
+    --text-danger: #a32d2d;
+    --border: rgba(0,0,0,0.09);
+    --border-md: rgba(0,0,0,0.13);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --accent: #3266ad;
+    --accent-light: #e6f1fb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1a;
+      --bg-secondary: #242422;
+      --bg-tertiary: #161614;
+      --bg-info: #0c2240;
+      --bg-success: #0f2a08;
+      --bg-warning: #2d1a04;
+      --bg-danger: #2a0c0c;
+      --text-primary: #e8e8e4;
+      --text-secondary: #9ca399;
+      --text-tertiary: #6b6b67;
+      --text-info: #7ab4f0;
+      --text-success: #82c45a;
+      --text-warning: #f0b860;
+      --text-danger: #f09090;
+      --border: rgba(255,255,255,0.08);
+      --border-md: rgba(255,255,255,0.12);
+      --accent: #5b8fd4;
+      --accent-light: #0c2240;
+    }
+  }
+
+  body { font-family: var(--font); background: var(--bg-tertiary); color: var(--text-primary); font-size: 14px; line-height: 1.5; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 48px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    background: var(--bg-primary);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .topbar-logo { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .topbar-right { display: flex; align-items: center; gap: 20px; }
+  .bot-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-success); }
+  .status-pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .capital-pill { font-size: 12px; color: var(--text-secondary); font-family: var(--mono); }
+
+  /* ── SIDENAV ── */
+  .sidenav {
+    position: fixed; left: 0; top: 48px; bottom: 0; width: 180px;
+    background: var(--bg-primary); border-right: 0.5px solid var(--border);
+    padding: 12px 8px; display: flex; flex-direction: column; gap: 1px; overflow-y: auto;
+  }
+  .nav-label { font-size: 11px; color: var(--text-tertiary); padding: 10px 10px 4px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px; padding: 7px 10px;
+    border-radius: var(--radius-md); font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; transition: background 0.12s, color 0.12s;
+  }
+  .nav-item:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .nav-item.active { background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; }
+  .nav-icon { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.55; }
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  /* ── MAIN ── */
+  .main { margin-left: 180px; margin-top: 48px; padding: 22px 24px 40px; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; align-items: center; gap: 0;
+    border-bottom: 0.5px solid var(--border); margin-bottom: 22px;
+  }
+  .tab {
+    padding: 9px 16px; font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+    white-space: nowrap; transition: color 0.12s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab:hover { color: var(--text-primary); }
+  .tab.active { color: var(--text-primary); font-weight: 500; border-bottom-color: var(--accent); }
+  .tab-badge {
+    font-size: 10px; padding: 1px 7px; border-radius: 10px; font-weight: 500;
+    background: var(--bg-info); color: var(--text-info);
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .page-title { font-size: 16px; font-weight: 600; }
+  .page-subtitle { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+  .header-controls { display: flex; gap: 8px; align-items: center; }
+  .range-btn {
+    padding: 5px 13px; font-size: 12px; border-radius: 20px; cursor: pointer;
+    border: 0.5px solid var(--border-md); background: transparent;
+    color: var(--text-secondary); font-family: var(--font); transition: all 0.12s;
+  }
+  .range-btn:hover { background: var(--bg-secondary); }
+  .range-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary {
+    padding: 6px 14px; font-size: 12px; border-radius: var(--radius-md);
+    background: var(--accent); color: #fff; border: none; font-family: var(--font);
+    font-weight: 500; cursor: pointer; transition: opacity 0.12s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+
+  /* ── METRICS ── */
+  .metrics-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+  .metric { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 14px 16px; }
+  .metric-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+  .metric-value { font-size: 22px; font-weight: 600; line-height: 1; }
+  .metric-sub { font-size: 11px; margin-top: 5px; color: var(--text-tertiary); }
+  .up { color: var(--text-success); }
+  .down { color: var(--text-danger); }
+  .neutral { color: var(--text-secondary); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-primary); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .card-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: 14px 16px 0;
+  }
+  .card-title { font-size: 13px; font-weight: 500; }
+  .card-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+  .card-body { padding: 12px 16px 16px; }
+
+  /* ── LAYOUT GRIDS ── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .g6040 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  /* ── CHARTS ── */
+  .chart-wrap { position: relative; width: 100%; }
+  .legend-row { display: flex; gap: 14px; padding: 8px 16px 0; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+  .leg-sq { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── AGENT WEIGHTS ── */
+  .agent-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .agent-row:last-child { border-bottom: none; }
+  .agent-name { font-size: 12px; font-weight: 500; width: 136px; flex-shrink: 0; }
+  .agent-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .agent-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .c-blue { background: #3266ad; }
+  .c-teal { background: #1D9E75; }
+  .c-amber { background: #BA7517; }
+  .c-pink { background: #993556; }
+  .agent-pct { font-size: 12px; color: var(--text-secondary); width: 34px; text-align: right; font-family: var(--mono); }
+  .agent-wr { font-size: 11px; width: 46px; text-align: right; }
+
+  /* ── OPEN POSITIONS ── */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tbl thead th {
+    text-align: left; padding: 8px 16px;
+    font-size: 11px; font-weight: 500; color: var(--text-tertiary);
+    border-bottom: 0.5px solid var(--border); letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .tbl thead th:last-child { text-align: right; }
+  .tbl tbody tr { border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .tbl tbody tr:last-child { border-bottom: none; }
+  .tbl tbody tr:hover { background: var(--bg-secondary); }
+  .tbl td { padding: 10px 16px; vertical-align: middle; }
+  .tbl td:last-child { text-align: right; }
+  .mkt-name { font-size: 12px; font-weight: 500; }
+  .mkt-cat { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border-radius: 4px; font-weight: 500;
+  }
+  .b-buy { background: var(--bg-success); color: var(--text-success); }
+  .b-sell { background: var(--bg-danger); color: var(--text-danger); }
+
+  /* ── WALLET ROWS ── */
+  .wallet-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 0.5px solid var(--border);
+  }
+  .wallet-row:last-child { border-bottom: none; }
+  .wallet-left { display: flex; align-items: center; gap: 10px; }
+  .w-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; flex-shrink: 0;
+  }
+  .wa1 { background: #e6f1fb; color: #185fa5; }
+  .wa2 { background: #e1f5ee; color: #0f6e56; }
+  .wa3 { background: #faeeda; color: #854f0b; }
+  .wa4 { background: #fbeaf0; color: #993556; }
+  .w-addr { font-size: 12px; font-weight: 500; font-family: var(--mono); }
+  .w-cat { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+  .wallet-right { text-align: right; }
+  .w-wr { font-size: 13px; font-weight: 500; color: var(--text-success); }
+  .w-pnl { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+  .wr-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 5px; width: 64px; margin-left: auto; }
+  .wr-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+
+  /* ── TRADE FILTERS ── */
+  .filter-strip {
+    display: flex; gap: 6px; padding: 10px 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .f-chip {
+    padding: 3px 11px; font-size: 11px; border-radius: 20px; cursor: pointer;
+    border: 0.5px solid var(--border-md); background: transparent;
+    color: var(--text-secondary); font-family: var(--font); transition: all 0.12s;
+  }
+  .f-chip:hover { background: var(--bg-secondary); }
+  .f-chip.on { background: var(--bg-info); color: var(--text-info); border-color: transparent; }
+
+  /* ── AGENT TAG ── */
+  .agent-tag { font-size: 11px; font-family: var(--mono); }
+  .tag-whale { color: #3266ad; }
+  .tag-arb { color: #993556; }
+  .tag-mom { color: #BA7517; }
+  .tag-micro { color: #1D9E75; }
+
+  /* ── LOG ── */
+  .log-scroll { max-height: 340px; overflow-y: auto; }
+  .log-row {
+    display: flex; align-items: flex-start; gap: 9px;
+    padding: 8px 0; border-bottom: 0.5px solid var(--border);
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-ts { font-size: 11px; color: var(--text-tertiary); font-family: var(--mono); flex-shrink: 0; width: 40px; padding-top: 2px; }
+  .log-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .ld-info { background: var(--accent); }
+  .ld-ok { background: #1D9E75; }
+  .ld-warn { background: #BA7517; }
+  .ld-err { background: #D85A30; }
+  .log-msg { font-size: 12px; color: var(--text-primary); line-height: 1.5; flex: 1; }
+  .log-tag-inline { font-family: var(--mono); font-size: 10px; color: var(--text-tertiary); }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-dot"></div>
+    Max HQ
+  </div>
+  <div class="topbar-right">
+    <div class="bot-status">
+      <div class="status-pulse"></div>
+      Bot live · paper mode
+    </div>
+    <div class="capital-pill">$200.00 USDC</div>
+  </div>
+</div>
+
+<!-- SIDENAV -->
+<nav class="sidenav">
+  <div class="nav-label">Workspace</div>
+  <div class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+    Overview
+  </div>
+  <div class="nav-label" style="margin-top:6px;">Revenue</div>
+  <div class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L6 8L9 10L14 4"/></svg>
+    Pipeline
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+    Deals
+  </div>
+  <div class="nav-label" style="margin-top:6px;">Capital</div>
+  <div class="nav-item active">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13V7M6 13V4M9 13V9M12 13V3"/></svg>
+    Trading
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12"/></svg>
+    Accounts
+  </div>
+  <div class="nav-label" style="margin-top:6px;">System</div>
+  <div class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M14 8h-1.5M3.5 8H2M12.2 3.8l-1.1 1.1M4.9 11.1l-1.1 1.1M12.2 12.2l-1.1-1.1M4.9 4.9L3.8 3.8"/></svg>
+    Config
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab">Overview</div>
+    <div class="tab">Positions</div>
+    <div class="tab active">Copy <span class="tab-badge">Live</span></div>
+    <div class="tab">History</div>
+    <div class="tab">Arb</div>
+    <div class="tab">Settings</div>
+  </div>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Copy trading</div>
+      <div class="page-subtitle">Whale signal tracking · Polymarket · Last updated 12s ago</div>
+    </div>
+    <div class="header-controls">
+      <button class="range-btn active" onclick="setRange(this,'7d')">7d</button>
+      <button class="range-btn" onclick="setRange(this,'30d')">30d</button>
+      <button class="range-btn" onclick="setRange(this,'all')">All</button>
+      <button class="btn-primary">Export CSV</button>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics-grid">
+    <div class="metric">
+      <div class="metric-label">Total PnL</div>
+      <div class="metric-value up">+$18.42</div>
+      <div class="metric-sub up">+9.2% return</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Win rate</div>
+      <div class="metric-value">63.2%</div>
+      <div class="metric-sub neutral">24 of 38 trades</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Capital deployed</div>
+      <div class="metric-value">$86.00</div>
+      <div class="metric-sub neutral">3 open · $114 free</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Avg position</div>
+      <div class="metric-value">$16.20</div>
+      <div class="metric-sub neutral">of $20 max</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Daily P&amp;L</div>
+      <div class="metric-value up">+$4.71</div>
+      <div class="metric-sub neutral">limit: −$20</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: PnL chart + Agent weights -->
+  <div class="g6040">
+
+    <!-- PnL Chart Card -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Cumulative PnL</div>
+          <div class="card-sub">Capital curve since deployment</div>
+        </div>
+      </div>
+      <div class="legend-row">
+        <div class="leg-item"><div class="leg-sq" style="background:#3266ad;"></div>PnL</div>
+        <div class="leg-item"><div class="leg-sq" style="background:#b5d4f4;"></div>Baseline</div>
+      </div>
+      <div class="chart-wrap" style="height:200px; padding:10px 16px 16px;">
+        <canvas id="pnlChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Agent weights card -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Agent signal weights</div>
+          <div class="card-sub">Auto-updated by learning loop</div>
+        </div>
+      </div>
+      <div class="card-body" style="padding-top:14px;">
+        <div class="agent-row">
+          <div class="agent-name">Whale consensus</div>
+          <div class="agent-bar-bg"><div class="agent-bar-fill c-blue" style="width:40%;"></div></div>
+          <div class="agent-pct">40%</div>
+          <div class="agent-wr up">67% wr</div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-name">Microstructure</div>
+          <div class="agent-bar-bg"><div class="agent-bar-fill c-teal" style="width:24%;"></div></div>
+          <div class="agent-pct">24%</div>
+          <div class="agent-wr up">58% wr</div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-name">Momentum fade</div>
+          <div class="agent-bar-bg"><div class="agent-bar-fill c-amber" style="width:21%;"></div></div>
+          <div class="agent-pct">21%</div>
+          <div class="agent-wr neutral">51% wr</div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-name">Cross-platform arb</div>
+          <div class="agent-bar-bg"><div class="agent-bar-fill c-pink" style="width:15%;"></div></div>
+          <div class="agent-pct">15%</div>
+          <div class="agent-wr up">72% wr</div>
+        </div>
+
+        <div style="margin-top:18px; padding-top:14px; border-top:0.5px solid var(--border);">
+          <div class="card-sub" style="margin-bottom:10px;">Win / loss breakdown</div>
+          <div class="chart-wrap" style="height:100px;">
+            <canvas id="wlChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Open positions + Watched wallets -->
+  <div class="g2">
+
+    <!-- Open positions -->
+    <div class="card">
+      <div class="card-head" style="padding-bottom:4px;">
+        <div class="card-title">Open positions</div>
+        <div class="card-sub">$86 deployed · 3 active</div>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Side</th>
+            <th>Entry</th>
+            <th>Current</th>
+            <th>Unrealized</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="mkt-name">BTC &gt; $100K</div><div class="mkt-cat">crypto · 36h left</div></td>
+            <td><span class="badge b-buy">YES</span></td>
+            <td>$0.44</td>
+            <td style="color:var(--text-success);">$0.52</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$3.64</td>
+          </tr>
+          <tr>
+            <td><div class="mkt-name">Fed cuts in June</div><div class="mkt-cat">economics · 12d left</div></td>
+            <td><span class="badge b-buy">YES</span></td>
+            <td>$0.61</td>
+            <td style="color:var(--text-success);">$0.65</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$1.18</td>
+          </tr>
+          <tr>
+            <td><div class="mkt-name">ETH &gt; $4K before July</div><div class="mkt-cat">crypto · 22d left</div></td>
+            <td><span class="badge b-sell">NO</span></td>
+            <td>$0.38</td>
+            <td style="color:var(--text-danger);">$0.41</td>
+            <td style="color:var(--text-danger);font-weight:500;text-align:right;">−$1.02</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Watched wallets -->
+    <div class="card">
+      <div class="card-head" style="padding-bottom:0;">
+        <div class="card-title">Watched wallets</div>
+        <div class="card-sub">4 active · screened weekly</div>
+      </div>
+      <div class="card-body" style="padding-top:12px;">
+        <div class="wallet-row">
+          <div class="wallet-left">
+            <div class="w-avatar wa1">0xAB</div>
+            <div><div class="w-addr">0xABCD...3f7a</div><div class="w-cat">crypto · 210 trades</div></div>
+          </div>
+          <div class="wallet-right">
+            <div class="w-wr">68% wr</div>
+            <div class="w-pnl">$47.2K net</div>
+            <div class="wr-bar"><div class="wr-fill" style="width:68%;"></div></div>
+          </div>
+        </div>
+        <div class="wallet-row">
+          <div class="wallet-left">
+            <div class="w-avatar wa2">0x12</div>
+            <div><div class="w-addr">0x1234...9e2c</div><div class="w-cat">politics + macro · 89 trades</div></div>
+          </div>
+          <div class="wallet-right">
+            <div class="w-wr">61% wr</div>
+            <div class="w-pnl">$22.8K net</div>
+            <div class="wr-bar"><div class="wr-fill" style="width:61%;"></div></div>
+          </div>
+        </div>
+        <div class="wallet-row">
+          <div class="wallet-left">
+            <div class="w-avatar wa3">0x56</div>
+            <div><div class="w-addr">0x5678...4d1b</div><div class="w-cat">early-entry · 140 trades</div></div>
+          </div>
+          <div class="wallet-right">
+            <div class="w-wr">57% wr</div>
+            <div class="w-pnl">$15.1K net</div>
+            <div class="wr-bar"><div class="wr-fill" style="width:57%;"></div></div>
+          </div>
+        </div>
+        <div class="wallet-row">
+          <div class="wallet-left">
+            <div class="w-avatar wa4">0x9F</div>
+            <div><div class="w-addr">0x9FEE...2a80</div><div class="w-cat">arb + crypto · 63 trades</div></div>
+          </div>
+          <div class="wallet-right">
+            <div class="w-wr">59% wr</div>
+            <div class="w-pnl">$11.4K net</div>
+            <div class="wr-bar"><div class="wr-fill" style="width:59%;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Recent trades + System log -->
+  <div class="g6040">
+
+    <!-- Recent trades -->
+    <div class="card">
+      <div class="card-head" style="padding-bottom:0;">
+        <div class="card-title">Recent trades</div>
+      </div>
+      <div class="filter-strip">
+        <button class="f-chip on" onclick="filterTrades(this,'all')">All</button>
+        <button class="f-chip" onclick="filterTrades(this,'win')">Wins</button>
+        <button class="f-chip" onclick="filterTrades(this,'loss')">Losses</button>
+        <button class="f-chip" onclick="filterTrades(this,'whale')">Whale</button>
+        <button class="f-chip" onclick="filterTrades(this,'arb')">Arb</button>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Market</th>
+            <th>Agent</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>PnL</th>
+          </tr>
+        </thead>
+        <tbody id="trade-rows">
+          <tr data-filter="win whale">
+            <td><div class="mkt-name">Trump tariff pause</div><div class="mkt-cat">politics</div></td>
+            <td><span class="agent-tag tag-whale">whale</span></td>
+            <td>$0.31</td><td>$0.54</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$6.12</td>
+          </tr>
+          <tr data-filter="win arb">
+            <td><div class="mkt-name">BTC $95K end of Q1</div><div class="mkt-cat">crypto</div></td>
+            <td><span class="agent-tag tag-arb">arb</span></td>
+            <td>$0.42 / $0.53</td><td>$1.00</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$4.90</td>
+          </tr>
+          <tr data-filter="win whale">
+            <td><div class="mkt-name">Nvidia earnings beat</div><div class="mkt-cat">finance</div></td>
+            <td><span class="agent-tag tag-whale">whale</span></td>
+            <td>$0.58</td><td>$0.82</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$3.88</td>
+          </tr>
+          <tr data-filter="loss whale">
+            <td><div class="mkt-name">EU AI Act delay</div><div class="mkt-cat">policy</div></td>
+            <td><span class="agent-tag tag-whale">whale</span></td>
+            <td>$0.47</td><td>$0.33</td>
+            <td style="color:var(--text-danger);font-weight:500;text-align:right;">−$3.20</td>
+          </tr>
+          <tr data-filter="win whale">
+            <td><div class="mkt-name">SOL &gt; $200</div><div class="mkt-cat">crypto</div></td>
+            <td><span class="agent-tag tag-whale">whale</span></td>
+            <td>$0.29</td><td>$0.45</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$2.67</td>
+          </tr>
+          <tr data-filter="loss arb">
+            <td><div class="mkt-name">Fed May pause</div><div class="mkt-cat">economics</div></td>
+            <td><span class="agent-tag tag-arb">arb</span></td>
+            <td>$0.55</td><td>$0.44</td>
+            <td style="color:var(--text-danger);font-weight:500;text-align:right;">−$2.10</td>
+          </tr>
+          <tr data-filter="win mom">
+            <td><div class="mkt-name">Apple Vision Pro 2 cancel</div><div class="mkt-cat">tech</div></td>
+            <td><span class="agent-tag tag-mom">momentum</span></td>
+            <td>$0.68</td><td>$0.88</td>
+            <td style="color:var(--text-success);font-weight:500;text-align:right;">+$2.44</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- System log -->
+    <div class="card">
+      <div class="card-head" style="padding-bottom:4px;">
+        <div class="card-title">System log</div>
+        <div class="card-sub">Live · last 24h</div>
+      </div>
+      <div class="card-body log-scroll" style="padding-top:10px;">
+        <div class="log-row">
+          <div class="log-ts">14:32</div>
+          <div class="log-dot ld-ok"></div>
+          <div class="log-msg">Position closed: BTC $95K +$4.90 <span class="log-tag-inline">[arb]</span></div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">14:31</div>
+          <div class="log-dot ld-info"></div>
+          <div class="log-msg">Limit order filled @ $0.42 · Fed cuts June <span class="log-tag-inline">[whale]</span></div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">14:28</div>
+          <div class="log-dot ld-info"></div>
+          <div class="log-msg">Signal: BUY YES · confidence 0.78 · 3 wallets confirmed</div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">14:26</div>
+          <div class="log-dot ld-info"></div>
+          <div class="log-msg">Whale scan: 0xABCD + 0x1234 entered BTC &gt; $100K YES</div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">13:58</div>
+          <div class="log-dot ld-warn"></div>
+          <div class="log-msg">Arb signal skipped: net spread 2.8¢ &lt; 4¢ threshold</div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">13:44</div>
+          <div class="log-dot ld-info"></div>
+          <div class="log-msg">Weights updated: whale ↑ 0.37→0.40, momentum ↓ 0.23→0.21</div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">13:21</div>
+          <div class="log-dot ld-ok"></div>
+          <div class="log-msg">Position closed: Nvidia earnings beat +$3.88 <span class="log-tag-inline">[whale]</span></div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">12:50</div>
+          <div class="log-dot ld-warn"></div>
+          <div class="log-msg">Regime: ETH/BTC flagged VOLATILE — momentum agent gated</div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">12:30</div>
+          <div class="log-dot ld-err"></div>
+          <div class="log-msg">Stop loss hit: EU AI Act −$3.20 <span class="log-tag-inline">[whale]</span></div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">11:02</div>
+          <div class="log-dot ld-info"></div>
+          <div class="log-msg">Market scan: 14 qualifying markets in watchlist</div>
+        </div>
+        <div class="log-row">
+          <div class="log-ts">09:00</div>
+          <div class="log-dot ld-ok"></div>
+          <div class="log-msg">Bot started · paper mode · capital $200.00 USDC</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Daily PnL bar chart -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Daily PnL breakdown</div>
+        <div class="card-sub">Per-day performance · last 14 days</div>
+      </div>
+    </div>
+    <div class="legend-row" style="padding-bottom:4px;">
+      <div class="leg-item"><div class="leg-sq" style="background:#1D9E75;"></div>Win day</div>
+      <div class="leg-item"><div class="leg-sq" style="background:#D85A30;"></div>Loss day</div>
+    </div>
+    <div class="chart-wrap" style="height:160px; padding:8px 16px 16px;">
+      <canvas id="dailyChart"></canvas>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gc   = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+const tc   = dark ? '#888780' : '#888780';
+
+const baseOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } }
+};
+
+// ── PnL curve ──────────────────────────────────────────────────────────
+const pnlDays  = ['Apr 4','Apr 5','Apr 6','Apr 7','Apr 8','Apr 9','Apr 10','Apr 11','Apr 12','Apr 13','Apr 14','Apr 15','Apr 16','Apr 17'];
+const pnlVals  = [0, 1.9, 1.2, 4.8, 3.4, 6.1, 5.0, 7.8, 6.4, 9.8, 8.2, 12.4, 10.8, 18.42];
+
+new Chart(document.getElementById('pnlChart'), {
+  type: 'line',
+  data: {
+    labels: pnlDays,
+    datasets: [
+      {
+        label: 'PnL', data: pnlVals,
+        borderColor: '#3266ad',
+        backgroundColor: dark ? 'rgba(50,102,173,0.12)' : 'rgba(50,102,173,0.08)',
+        fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2
+      },
+      {
+        label: 'Baseline', data: Array(14).fill(0),
+        borderColor: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+        borderDash: [4,4], fill: false, tension: 0, pointRadius: 0, borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    ...baseOpts,
+    plugins: { ...baseOpts.plugins, tooltip: { callbacks: { label: c => ' $' + c.parsed.y.toFixed(2) } } },
+    scales: {
+      x: { grid: { color: gc }, ticks: { color: tc, font: { size: 11 }, maxRotation: 0, maxTicksLimit: 7 } },
+      y: { grid: { color: gc }, ticks: { color: tc, font: { size: 11 }, callback: v => '$' + v.toFixed(0) } }
+    }
+  }
+});
+
+// ── Win/Loss bar ───────────────────────────────────────────────────────
+new Chart(document.getElementById('wlChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Wins', 'Losses'],
+    datasets: [{ data: [24, 14], backgroundColor: ['#1D9E75','#D85A30'], borderRadius: 4, borderSkipped: false }]
+  },
+  options: {
+    ...baseOpts, indexAxis: 'y',
+    scales: {
+      x: { grid: { color: gc }, ticks: { color: tc, font: { size: 11 } } },
+      y: { grid: { display: false }, ticks: { color: tc, font: { size: 11 } } }
+    }
+  }
+});
+
+// ── Daily PnL bars ─────────────────────────────────────────────────────
+const daily = [2.1, -1.4, 3.8, 1.2, -0.8, 4.2, 2.9, -2.1, 1.8, 3.4, 0.9, -0.5, 4.7, 1.2];
+const dLabels = ['Apr 4','Apr 5','Apr 6','Apr 7','Apr 8','Apr 9','Apr 10','Apr 11','Apr 12','Apr 13','Apr 14','Apr 15','Apr 16','Apr 17'];
+
+new Chart(document.getElementById('dailyChart'), {
+  type: 'bar',
+  data: {
+    labels: dLabels,
+    datasets: [{
+      data: daily,
+      backgroundColor: daily.map(v => v >= 0 ? '#1D9E75' : '#D85A30'),
+      borderRadius: 3, borderSkipped: false
+    }]
+  },
+  options: {
+    ...baseOpts,
+    plugins: { ...baseOpts.plugins, tooltip: { callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + '$' + c.parsed.y.toFixed(2) } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: tc, font: { size: 11 }, maxRotation: 0, autoSkip: false } },
+      y: { grid: { color: gc }, ticks: { color: tc, font: { size: 11 }, callback: v => (v >= 0 ? '+' : '') + '$' + v.toFixed(0) } }
+    }
+  }
+});
+
+// ── Range toggle ───────────────────────────────────────────────────────
+function setRange(el) {
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Trade filter ───────────────────────────────────────────────────────
+function filterTrades(el, type) {
+  document.querySelectorAll('.f-chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('#trade-rows tr').forEach(r => {
+    r.style.display = (type === 'all' || (r.dataset.filter || '').includes(type)) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
